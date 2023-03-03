@@ -105,8 +105,9 @@ void RayMarcher::run()
     cam.invhalffov = 1.0f / std::tan(fov / 2.0f);
 
     checkResize();
+    updateMultisamples();
 
-    m_texture->runKernel(compute::basicRayMarching, cam, exponent);
+    m_texture->runKernel(compute::basicRayMarching, cam, exponent, m_numSamples);
 
     m_window.processInput();
 
@@ -144,6 +145,11 @@ void RayMarcher::checkResize()
     m_texture->resize(newWidth, newHeight);
     m_resizeDirtyFlag = false;
   }
+}
+
+void RayMarcher::updateMultisamples()
+{
+  m_numSamples = m_paramsInterface->getSampleCount();
 }
 
 } // namespace rmcuda

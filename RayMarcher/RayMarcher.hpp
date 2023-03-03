@@ -30,6 +30,7 @@ public:
 
 private:
 	void checkResize();
+	void updateMultisamples();
 
 	wrndr::Window m_window;
 	wrndr::Buffer<float> m_vertexBuffer;
@@ -49,6 +50,8 @@ private:
 	int m_resolutionScaling = 1;
 	int m_resizeWidth;
 	int m_resizeHeight;
+
+	int m_numSamples = 1;
 };
 
 } // namespace rmcuda

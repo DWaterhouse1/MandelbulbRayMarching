@@ -11,18 +11,16 @@ namespace rmcuda
 {
 namespace compute
 {
-void basicRayMarching(cudaSurfaceObject_t surface, dim3 texDim, Camera camera, float exponent)
+void basicRayMarching(cudaSurfaceObject_t surface, dim3 texDim, Camera camera, float exponent, int numSamples)
 {
 	dim3 thread(16, 16);
 	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
-	rayMarch << <block, thread >> > (surface, texDim, camera, exponent);
+	rayMarch<<<block, thread>>>(surface, texDim, camera, exponent, numSamples);
 }
 
 // TODO expand to alternate aspect ratios/resolution scalings
-__global__ void rayMarch(cudaSurfaceObject_t surface, dim3 pixelDim, Camera camera, float exponent)
+__global__ void rayMarch(cudaSurfaceObject_t surface, dim3 pixelDim, Camera camera, float exponent, int numSamples)
 {
-	const int numSamples = 3;
-
 	unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 	unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
 
