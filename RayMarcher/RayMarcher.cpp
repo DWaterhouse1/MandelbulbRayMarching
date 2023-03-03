@@ -24,7 +24,9 @@ RayMarcher::RayMarcher(const int width, const int height) :
       std::string(wrndr::constants::fragmentShaderSource) },
   m_shaderProgram{ m_vertexShader, m_fragmentShader },
   m_vertexArray{},
-  m_interfaceContext{ m_window }
+  m_interfaceContext{ m_window },
+  m_resizeWidth{ width },
+  m_resizeHeight{ height }
 {
   std::vector<float> vertices =
   {
@@ -74,7 +76,9 @@ RayMarcher::RayMarcher(const int width, const int height) :
 
   m_resizeFuncHandle = m_window.registerResizeCallback([this](int width, int height)
     {
-      m_texture->resize(width, height);
+      m_resizeDirtyFlag = true;
+      m_resizeWidth = width;
+      m_resizeHeight = height;
     });
 }
 
@@ -100,6 +104,8 @@ void RayMarcher::run()
     float fov = 128.0f / 180.0f * float(3.14159);
     cam.invhalffov = 1.0f / std::tan(fov / 2.0f);
 
+    checkResize();
+
     m_texture->runKernel(compute::basicRayMarching, cam, exponent);
 
     m_window.processInput();
@@ -118,6 +124,25 @@ void RayMarcher::run()
     m_interfaceContext.endFrame();
 
     m_window.update();
+  }
+}
+
+void RayMarcher::checkResize()
+{
+  if (m_paramsInterface->resScaleDirty())
+  {
+    m_resizeDirtyFlag = true;
+    m_resolutionScaling = m_paramsInterface->getResolutionScale();
+    m_paramsInterface->resetResScaleDirty();
+  }
+
+  if (m_resizeDirtyFlag)
+  {
+    // TODO properly manage integer division here
+    const int newWidth = m_resizeWidth / m_resolutionScaling;
+    const int newHeight = m_resizeHeight / m_resolutionScaling;
+    m_texture->resize(newWidth, newHeight);
+    m_resizeDirtyFlag = false;
   }
 }
 

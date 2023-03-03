@@ -131,10 +131,10 @@ void ParamsInterface::rayMarchingControls()
 		{  1,   2,   4,   8,   16  }
 	};
 
-	static constexpr ComboBoxArrays<float, 4> resolutionScaling
+	static constexpr ComboBoxArrays<int, 4> resolutionScaling
 	{
-		{ "1/4",		"1/3",		"1/2",		 "1"},
-		{  1 / 4.0f, 1 / 3.0f, 1 / 2.0f,  1.0f }
+		{ "1/4", "1/3",	"1/2", "1"},
+		{  4,			3,		 2,		  1 }
 	};
 
 	static int msaaCountIndex = 0;
@@ -158,6 +158,7 @@ void ParamsInterface::rayMarchingControls()
 			boost::numeric_cast<int>(resolutionScaling.size())))
 		{
 			m_resolutionScale = resolutionScaling[scalingIndex];
+			m_scaleDirtyFlag = true;
 		}
 	}
 
