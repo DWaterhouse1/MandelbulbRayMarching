@@ -6,7 +6,10 @@
 #include <device_launch_parameters.h>
 #include <curand_kernel.h>
 
-namespace rmcuda::compute
+// nvcc will compile qualified namespaces, but it breaks intellisense
+namespace rmcuda
+{
+namespace compute
 {
 void basicRayMarching(cudaSurfaceObject_t surface, dim3 texDim, Camera camera, float exponent)
 {
@@ -183,4 +186,5 @@ __device__ float sphereDistance(float3 position, float3 center, float radius)
 {
 	return length(position - center) - radius;
 }
-} // namespace rm::compute
+} // namespace rmcuda
+} // namespace compute
