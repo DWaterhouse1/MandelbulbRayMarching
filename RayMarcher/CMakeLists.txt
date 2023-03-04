@@ -15,7 +15,8 @@ set(RAYMARCHER_HEADERS
 		ParamsInterface.hpp
 		Timer.hpp
 		CudaHelpers.hpp
-		RayMarchCompute.cuh)
+		RayMarchCompute.cuh
+		Shading.cuh)
 
 set(RAYMARCHER_SOURCES
 		RayMarcher.cpp

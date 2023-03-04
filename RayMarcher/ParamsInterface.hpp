@@ -38,12 +38,6 @@ struct SphericalCoord
 	}
 };
 
-enum class ShadingMode
-{
-	kDiffuseLight,
-	kNormal,
-};
-
 class ParamsInterface : public wrndr::InterfaceLayer
 {
 public:

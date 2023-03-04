@@ -106,8 +106,12 @@ void RayMarcher::run()
 
     checkResize();
     updateMultisamples();
-
-    m_texture->runKernel(compute::basicRayMarching, cam, exponent, m_numSamples);
+    
+    m_texture->runKernel(
+      compute::basicRayMarching,
+      cam,
+      exponent,
+      m_numSamples);
 
     m_window.processInput();
 

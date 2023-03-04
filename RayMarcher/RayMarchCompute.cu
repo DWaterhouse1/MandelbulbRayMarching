@@ -6,26 +6,61 @@
 #include <device_launch_parameters.h>
 #include <curand_kernel.h>
 
+#include "Shading.cuh"
+
 // nvcc will compile qualified namespaces, but it breaks intellisense
 namespace rmcuda
 {
 namespace compute
 {
+__global__ void rayMarch(
+	cudaSurfaceObject_t surface,
+	dim3 pixelDim,
+	Camera camera,
+	float exponent,
+	int numSamples,
+	float3 inColour);
+__device__ float3 march(Ray ray, float exponent, float3 inColour);
+__device__ float sphereDistance(float3 position, float3 centre, float radius);
+__device__ float3 sphereNormal(float3 pos, float3 center, float radius);
+__device__ float mandelbulbDistance(float3 position, float exponent);
+__device__ float3 mandelbulbNormal(float3 pos, float exponent);
+
 void basicRayMarching(cudaSurfaceObject_t surface, dim3 texDim, Camera camera, float exponent, int numSamples)
 {
 	dim3 thread(16, 16);
 	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
-	rayMarch<<<block, thread>>>(surface, texDim, camera, exponent, numSamples);
+	rayMarch<<<block, thread>>>(surface, texDim, camera, exponent, numSamples, make_float3(1.0f));
 }
 
-// TODO expand to alternate aspect ratios/resolution scalings
-__global__ void rayMarch(cudaSurfaceObject_t surface, dim3 pixelDim, Camera camera, float exponent, int numSamples)
+void rayMarchDiffuseColour(
+	cudaSurfaceObject_t surface,
+	dim3 texDim,
+	Camera camera,
+	float exponent,
+	int numSamples,
+	float3 colour)
+{
+	dim3 thread(16, 16);
+	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
+	rayMarch<<<block, thread>>>(surface, texDim, camera, exponent, numSamples, colour);
+}
+
+// TODO respect differing aspect ratios
+__global__ void rayMarch(
+	cudaSurfaceObject_t surface,
+	dim3 pixelDim,
+	Camera camera,
+	float exponent,
+	int numSamples,
+	float3 inColour)
 {
 	unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 	unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
 
 	if (x >= pixelDim.x || y >= pixelDim.y) return;
 
+	//TODO seed this with a random value
 	curandState state;
 	curand_init(1729, 0, 0, &state);
 
@@ -46,7 +81,7 @@ __global__ void rayMarch(cudaSurfaceObject_t surface, dim3 pixelDim, Camera came
 				camera.dir * camera.invhalffov)
 		};
 
-		color += march(ray, exponent);
+		color += testMarch<Normal>(ray, exponent, inColour);
 	}
 
 	color /= numSamples;
@@ -62,7 +97,7 @@ __global__ void rayMarch(cudaSurfaceObject_t surface, dim3 pixelDim, Camera came
 	}
 }
 
-__device__ float3 march(Ray ray, float exponent)
+__device__ float3 march(Ray ray, float exponent, float3 inColour)
 {
 	float totalDistance = 0.0f;
 	const float minDistance = 0.0001f;
@@ -90,8 +125,7 @@ __device__ float3 march(Ray ray, float exponent)
 
 			float intensity = max(0.0f, dot(normal, lightDirection));
 
-			return make_float3(1.0f, 1.0f, 1.0f) * intensity;
-			//return make_float3(0.3f, 0.5f, 0.8f) * intensity;
+			return inColour * intensity;
 #else
 			return 0.5f * mandelbulbNormal(currentPosition, exponent) + 0.5f;
 #endif
