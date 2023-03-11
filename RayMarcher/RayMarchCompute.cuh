@@ -53,6 +53,13 @@ extern void rayMarchNormalColour(
 	float exponent,
 	int numSamples);
 
+extern void rayMarchStepwiseColour(
+	cudaSurfaceObject_t surface,
+	dim3 texDim,
+	Camera camera,
+	float exponent,
+	int numSamples);
+
 } // namespace compute
 } // namespace rmcuda
 

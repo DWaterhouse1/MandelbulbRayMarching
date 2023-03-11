@@ -10,7 +10,7 @@ enum class ShadingMode
 {
 	kDiffuseLight,
 	kNormalColor,
-	kDepthShaded,
+	kStepwiseShaded,
 };
 
 } // namespace rmcuda

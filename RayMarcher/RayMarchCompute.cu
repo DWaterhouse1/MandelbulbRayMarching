@@ -103,7 +103,7 @@ void rayMarchDiffuseColour(
 		colour);
 }
 
-extern void rayMarchNormalColour(
+void rayMarchNormalColour(
 	cudaSurfaceObject_t surface,
 	dim3 texDim,
 	Camera camera,
@@ -113,6 +113,24 @@ extern void rayMarchNormalColour(
 	dim3 thread(16, 16);
 	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
 	rayMarch<Normal><<<block, thread>>>(
+		surface,
+		texDim,
+		camera,
+		exponent,
+		numSamples,
+		make_float3(0.0f));
+}
+
+void rayMarchStepwiseColour(
+	cudaSurfaceObject_t surface,
+	dim3 texDim,
+	Camera camera,
+	float exponent,
+	int numSamples)
+{
+	dim3 thread(16, 16);
+	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
+	rayMarch<Stepwise><<<block, thread>>>(
 		surface,
 		texDim,
 		camera,

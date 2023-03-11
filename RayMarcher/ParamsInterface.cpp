@@ -168,8 +168,8 @@ void ParamsInterface::shadingModeControls()
 {
 	static constexpr ComboBoxArrays<ShadingMode, 3> shadingModes
 	{
-		{"Diffuse Light",						 "Normal Colour",						"Depth Shaded"},
-		{ShadingMode::kDiffuseLight, ShadingMode::kNormalColor, ShadingMode::kDepthShaded}
+		{"Diffuse Light",						 "Normal Colour",						"Stepwise Shaded"},
+		{ShadingMode::kDiffuseLight, ShadingMode::kNormalColor, ShadingMode::kStepwiseShaded}
 	};
 
 	static int shadingModeIndex = 0;

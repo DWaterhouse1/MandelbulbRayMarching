@@ -124,7 +124,12 @@ void RayMarcher::run()
         exponent,
         m_numSamples);
       break;
-    case ShadingMode::kDepthShaded:
+    case ShadingMode::kStepwiseShaded:
+      m_texture->runKernel(
+        compute::rayMarchStepwiseColour,
+        cam,
+        exponent,
+        m_numSamples);
       break;
     }
 
