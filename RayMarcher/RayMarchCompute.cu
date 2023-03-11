@@ -13,40 +13,14 @@ namespace rmcuda
 {
 namespace compute
 {
-__global__ void rayMarch(
-	cudaSurfaceObject_t surface,
-	dim3 pixelDim,
-	Camera camera,
-	float exponent,
-	int numSamples,
-	float3 inColour);
 __device__ float3 march(Ray ray, float exponent, float3 inColour);
 __device__ float sphereDistance(float3 position, float3 centre, float radius);
 __device__ float3 sphereNormal(float3 pos, float3 center, float radius);
 __device__ float mandelbulbDistance(float3 position, float exponent);
 __device__ float3 mandelbulbNormal(float3 pos, float exponent);
 
-void basicRayMarching(cudaSurfaceObject_t surface, dim3 texDim, Camera camera, float exponent, int numSamples)
-{
-	dim3 thread(16, 16);
-	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
-	rayMarch<<<block, thread>>>(surface, texDim, camera, exponent, numSamples, make_float3(1.0f));
-}
-
-void rayMarchDiffuseColour(
-	cudaSurfaceObject_t surface,
-	dim3 texDim,
-	Camera camera,
-	float exponent,
-	int numSamples,
-	float3 colour)
-{
-	dim3 thread(16, 16);
-	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
-	rayMarch<<<block, thread>>>(surface, texDim, camera, exponent, numSamples, colour);
-}
-
 // TODO respect differing aspect ratios
+template <typename ShadingPolicy>
 __global__ void rayMarch(
 	cudaSurfaceObject_t surface,
 	dim3 pixelDim,
@@ -81,7 +55,7 @@ __global__ void rayMarch(
 				camera.dir * camera.invhalffov)
 		};
 
-		color += testMarch<Normal>(ray, exponent, inColour);
+		color += testMarch<ShadingPolicy>(ray, exponent, inColour);
 	}
 
 	color /= numSamples;
@@ -95,6 +69,56 @@ __global__ void rayMarch(
 			255);
 		surf2Dwrite(data, surface, x * sizeof(uchar4), y);
 	}
+}
+
+void basicRayMarching(cudaSurfaceObject_t surface, dim3 texDim, Camera camera, float exponent, int numSamples)
+{
+	dim3 thread(16, 16);
+	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
+	rayMarch<Diffuse><<<block, thread>>>(
+		surface,
+		texDim,
+		camera,
+		exponent,
+		numSamples,
+		make_float3(1.0f));
+}
+
+void rayMarchDiffuseColour(
+	cudaSurfaceObject_t surface,
+	dim3 texDim,
+	Camera camera,
+	float exponent,
+	int numSamples,
+	float3 colour)
+{
+	dim3 thread(16, 16);
+	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
+	rayMarch<Diffuse><<<block, thread>>>(
+		surface,
+		texDim,
+		camera,
+		exponent,
+		numSamples,
+		colour);
+}
+
+extern void rayMarchNormalColour(
+	cudaSurfaceObject_t surface,
+	dim3 texDim,
+	Camera camera,
+	float exponent,
+	int numSamples)
+{
+	dim3 thread(16, 16);
+	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
+	rayMarch<Normal><<<block, thread>>>(
+		surface,
+		texDim,
+		camera,
+		exponent,
+		numSamples,
+		make_float3(0.0f));
 }
 
 __device__ float3 march(Ray ray, float exponent, float3 inColour)

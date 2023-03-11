@@ -166,6 +166,22 @@ void ParamsInterface::rayMarchingControls()
 
 void ParamsInterface::shadingModeControls()
 {
+	static constexpr ComboBoxArrays<ShadingMode, 3> shadingModes
+	{
+		{"Diffuse Light",						 "Normal Colour",						"Depth Shaded"},
+		{ShadingMode::kDiffuseLight, ShadingMode::kNormalColor, ShadingMode::kDepthShaded}
+	};
+
+	static int shadingModeIndex = 0;
+
+	if (ImGui::Combo(
+		"Shading Mode",
+		&shadingModeIndex,
+		shadingModes.names(),
+		boost::numeric_cast<int>(shadingModes.size())))
+	{
+		m_activeShadingMode = shadingModes[shadingModeIndex];
+	}
 }
 
 } // namespace rmcuda

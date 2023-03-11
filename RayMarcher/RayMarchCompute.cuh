@@ -23,13 +23,6 @@ struct Camera
 	}
 };
 
-enum class ShadingMode
-{
-	kDiffuseLight,
-	kNormalColor,
-	kDepthShaded
-};
-
 namespace compute
 {
 struct Ray
@@ -52,6 +45,13 @@ extern void rayMarchDiffuseColour(
 	float exponent,
 	int numSamples,
 	float3 colour);
+
+extern void rayMarchNormalColour(
+	cudaSurfaceObject_t surface,
+	dim3 texDim,
+	Camera camera,
+	float exponent,
+	int numSamples);
 
 } // namespace compute
 } // namespace rmcuda

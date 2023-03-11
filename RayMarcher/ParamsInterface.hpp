@@ -1,6 +1,8 @@
 #ifndef RAYMARCHER_PARAMSINTERFACE_HPP
 #define RAYMARCHER_PARAMSINTERFACE_HPP
 
+#include "ShadingModes.hpp"
+
 // wrenderer
 #include "UILayer.hpp"
 
@@ -73,6 +75,8 @@ public:
 
 	[[nodiscard]] int getResolutionScale() const { return m_resolutionScale; }
 
+	[[nodiscard]] ShadingMode getShadingMode() const { return m_activeShadingMode; }
+
 	void resetResScaleDirty() { m_scaleDirtyFlag = false; }
 
 private:
@@ -99,6 +103,8 @@ private:
 	ImGuiIO* m_io = nullptr;
 
 	SphericalCoord m_cameraCoords{};
+
+	ShadingMode m_activeShadingMode = ShadingMode::kDiffuseLight;
 };
 
 } // namespace rmcuda

@@ -106,12 +106,27 @@ void RayMarcher::run()
 
     checkResize();
     updateMultisamples();
-    
-    m_texture->runKernel(
-      compute::basicRayMarching,
-      cam,
-      exponent,
-      m_numSamples);
+
+    switch (m_paramsInterface->getShadingMode())
+    {
+    case ShadingMode::kDiffuseLight:
+      m_texture->runKernel(
+        compute::rayMarchDiffuseColour,
+        cam,
+        exponent,
+        m_numSamples,
+        make_float3(0.8f, 1.0f, 0.9f));
+      break;
+    case ShadingMode::kNormalColor:
+      m_texture->runKernel(
+        compute::rayMarchNormalColour,
+        cam,
+        exponent,
+        m_numSamples);
+      break;
+    case ShadingMode::kDepthShaded:
+      break;
+    }
 
     m_window.processInput();
 
