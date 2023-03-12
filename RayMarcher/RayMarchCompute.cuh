@@ -58,7 +58,9 @@ extern void rayMarchStepwiseColour(
 	dim3 texDim,
 	Camera camera,
 	float exponent,
-	int numSamples);
+	int numSamples,
+	float3 lowColour,
+	float3 highColour);
 
 } // namespace compute
 } // namespace rmcuda

@@ -166,21 +166,35 @@ void ParamsInterface::rayMarchingControls()
 
 void ParamsInterface::shadingModeControls()
 {
-	static constexpr ComboBoxArrays<ShadingMode, 3> shadingModes
+	if (ImGui::CollapsingHeader("Shading Controls"))
 	{
-		{"Diffuse Light",						 "Normal Colour",						"Stepwise Shaded"},
-		{ShadingMode::kDiffuseLight, ShadingMode::kNormalColor, ShadingMode::kStepwiseShaded}
-	};
+		static constexpr ComboBoxArrays<ShadingMode, 3> shadingModes
+		{
+			{"Diffuse Light",						 "Normal Colour",						"Stepwise Shaded"},
+			{ShadingMode::kDiffuseLight, ShadingMode::kNormalColor, ShadingMode::kStepwiseShaded}
+		};
 
-	static int shadingModeIndex = 0;
+		static int shadingModeIndex = 0;
 
-	if (ImGui::Combo(
-		"Shading Mode",
-		&shadingModeIndex,
-		shadingModes.names(),
-		boost::numeric_cast<int>(shadingModes.size())))
-	{
-		m_activeShadingMode = shadingModes[shadingModeIndex];
+		if (ImGui::Combo(
+			"Shading Mode",
+			&shadingModeIndex,
+			shadingModes.names(),
+			boost::numeric_cast<int>(shadingModes.size())))
+		{
+			m_activeShadingMode = shadingModes[shadingModeIndex];
+		}
+
+		if (shadingModeIndex == 0)
+		{
+			ImGui::ColorEdit3("Diffuse colour", &m_diffuseColour.r);
+		}
+
+		if (shadingModeIndex == 2)
+		{
+			ImGui::ColorEdit3("Low step colour", &m_lowColour.r);
+			ImGui::ColorEdit3("High step colour", &m_highColour.r);
+		}
 	}
 }
 

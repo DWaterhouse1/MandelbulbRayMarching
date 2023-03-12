@@ -40,6 +40,13 @@ struct SphericalCoord
 	}
 };
 
+struct Colour
+{
+	float r = 1.0f;
+	float g = 1.0f;
+	float b = 1.0f;
+};
+
 class ParamsInterface : public wrndr::InterfaceLayer
 {
 public:
@@ -77,6 +84,12 @@ public:
 
 	[[nodiscard]] ShadingMode getShadingMode() const { return m_activeShadingMode; }
 
+	[[nodiscard]] Colour getDiffuseColour() const { return m_diffuseColour; }
+
+	[[nodiscard]] Colour getLowStepColour() const { return m_lowColour; }
+
+	[[nodiscard]] Colour getHighStepColour() const { return m_highColour; }
+
 	void resetResScaleDirty() { m_scaleDirtyFlag = false; }
 
 private:
@@ -105,6 +118,10 @@ private:
 	SphericalCoord m_cameraCoords{};
 
 	ShadingMode m_activeShadingMode = ShadingMode::kDiffuseLight;
+
+	Colour m_diffuseColour = { 1.0f };
+	Colour m_lowColour = { 1.0f };
+	Colour m_highColour = { 0.0f };
 };
 
 } // namespace rmcuda

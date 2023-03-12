@@ -13,6 +13,9 @@ namespace rmcuda
 {
 namespace compute
 {
+//const float3 dummyColour = make_float3(0.0f);
+static constexpr float3 dummyColour = { 0.0f };
+
 __device__ float3 march(Ray ray, float exponent, float3 inColour);
 __device__ float sphereDistance(float3 position, float3 centre, float radius);
 __device__ float3 sphereNormal(float3 pos, float3 center, float radius);
@@ -27,7 +30,8 @@ __global__ void rayMarch(
 	Camera camera,
 	float exponent,
 	int numSamples,
-	float3 inColour)
+	float3 inColourA,
+	float3 inColourB)
 {
 	unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 	unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -55,7 +59,7 @@ __global__ void rayMarch(
 				camera.dir * camera.invhalffov)
 		};
 
-		color += testMarch<ShadingPolicy>(ray, exponent, inColour);
+		color += testMarch<ShadingPolicy>(ray, exponent, inColourA, inColourB);
 	}
 
 	color /= numSamples;
@@ -81,7 +85,8 @@ void basicRayMarching(cudaSurfaceObject_t surface, dim3 texDim, Camera camera, f
 		camera,
 		exponent,
 		numSamples,
-		make_float3(1.0f));
+		dummyColour,
+		dummyColour);
 }
 
 void rayMarchDiffuseColour(
@@ -100,7 +105,8 @@ void rayMarchDiffuseColour(
 		camera,
 		exponent,
 		numSamples,
-		colour);
+		colour,
+		dummyColour);
 }
 
 void rayMarchNormalColour(
@@ -118,7 +124,8 @@ void rayMarchNormalColour(
 		camera,
 		exponent,
 		numSamples,
-		make_float3(0.0f));
+		dummyColour,
+		dummyColour);
 }
 
 void rayMarchStepwiseColour(
@@ -126,7 +133,9 @@ void rayMarchStepwiseColour(
 	dim3 texDim,
 	Camera camera,
 	float exponent,
-	int numSamples)
+	int numSamples,
+	float3 lowColour,
+	float3 highColour)
 {
 	dim3 thread(16, 16);
 	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
@@ -136,7 +145,8 @@ void rayMarchStepwiseColour(
 		camera,
 		exponent,
 		numSamples,
-		make_float3(0.0f));
+		lowColour,
+		highColour);
 }
 
 __device__ float3 march(Ray ray, float exponent, float3 inColour)

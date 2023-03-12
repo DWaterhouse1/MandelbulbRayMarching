@@ -110,13 +110,16 @@ void RayMarcher::run()
     switch (m_paramsInterface->getShadingMode())
     {
     case ShadingMode::kDiffuseLight:
+    {
+      Colour colour = m_paramsInterface->getDiffuseColour();
       m_texture->runKernel(
         compute::rayMarchDiffuseColour,
         cam,
         exponent,
         m_numSamples,
-        make_float3(0.8f, 1.0f, 0.9f));
+        make_float3(colour.r, colour.g, colour.b));
       break;
+    }
     case ShadingMode::kNormalColor:
       m_texture->runKernel(
         compute::rayMarchNormalColour,
@@ -125,12 +128,18 @@ void RayMarcher::run()
         m_numSamples);
       break;
     case ShadingMode::kStepwiseShaded:
+    {
+      Colour low = m_paramsInterface->getLowStepColour();
+      Colour high = m_paramsInterface->getHighStepColour();
       m_texture->runKernel(
         compute::rayMarchStepwiseColour,
         cam,
         exponent,
-        m_numSamples);
+        m_numSamples,
+        make_float3(low.r, low.g, low.b),
+        make_float3(high.r, high.g, high.b));
       break;
+    }
     }
 
     m_window.processInput();
