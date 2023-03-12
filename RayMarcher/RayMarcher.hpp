@@ -29,6 +29,9 @@ public:
 	void run();
 
 private:
+	void checkResize();
+	void updateMultisamples();
+
 	wrndr::Window m_window;
 	wrndr::Buffer<float> m_vertexBuffer;
 	wrndr::Buffer<unsigned int> m_indexBuffer;
@@ -42,6 +45,13 @@ private:
 	boost::optional<CudaInteropTexture> m_texture;
 	std::shared_ptr<ParamsInterface> m_paramsInterface;
 	unsigned int m_resizeFuncHandle = 0;
+
+	bool m_resizeDirtyFlag = false;
+	int m_resolutionScaling = 1;
+	int m_resizeWidth;
+	int m_resizeHeight;
+
+	int m_numSamples = 1;
 };
 
 } // namespace rmcuda

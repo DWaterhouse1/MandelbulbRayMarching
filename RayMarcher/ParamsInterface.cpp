@@ -131,10 +131,10 @@ void ParamsInterface::rayMarchingControls()
 		{  1,   2,   4,   8,   16  }
 	};
 
-	static constexpr ComboBoxArrays<float, 4> resolutionScaling
+	static constexpr ComboBoxArrays<int, 4> resolutionScaling
 	{
-		{ "1/4",		"1/3",		"1/2",		 "1"},
-		{  1 / 4.0f, 1 / 3.0f, 1 / 2.0f,  1.0f }
+		{ "1/4", "1/3",	"1/2", "1"},
+		{  4,			3,		 2,		  1 }
 	};
 
 	static int msaaCountIndex = 0;
@@ -158,6 +158,7 @@ void ParamsInterface::rayMarchingControls()
 			boost::numeric_cast<int>(resolutionScaling.size())))
 		{
 			m_resolutionScale = resolutionScaling[scalingIndex];
+			m_scaleDirtyFlag = true;
 		}
 	}
 
@@ -165,6 +166,36 @@ void ParamsInterface::rayMarchingControls()
 
 void ParamsInterface::shadingModeControls()
 {
+	if (ImGui::CollapsingHeader("Shading Controls"))
+	{
+		static constexpr ComboBoxArrays<ShadingMode, 3> shadingModes
+		{
+			{"Diffuse Light",						 "Normal Colour",						"Stepwise Shaded"},
+			{ShadingMode::kDiffuseLight, ShadingMode::kNormalColor, ShadingMode::kStepwiseShaded}
+		};
+
+		static int shadingModeIndex = 0;
+
+		if (ImGui::Combo(
+			"Shading Mode",
+			&shadingModeIndex,
+			shadingModes.names(),
+			boost::numeric_cast<int>(shadingModes.size())))
+		{
+			m_activeShadingMode = shadingModes[shadingModeIndex];
+		}
+
+		if (shadingModeIndex == 0)
+		{
+			ImGui::ColorEdit3("Diffuse colour", &m_diffuseColour.r);
+		}
+
+		if (shadingModeIndex == 2)
+		{
+			ImGui::ColorEdit3("Low step colour", &m_lowColour.r);
+			ImGui::ColorEdit3("High step colour", &m_highColour.r);
+		}
+	}
 }
 
 } // namespace rmcuda

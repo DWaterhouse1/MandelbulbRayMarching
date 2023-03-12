@@ -25,7 +25,9 @@ const char* const fragmentShaderSource = "#version 460 core\n"
 "\n"
 "void main()\n"
 "{\n"
-"    FragColor = texture(inTex, texCoord);\n"
+"		 vec4 texColor = texture(inTex, texCoord);\n"
+"		 if (texColor.a < 0.01) discard;\n"
+"    FragColor = texColor;\n"
 "}";
 
 } // namespace wrndr::constants

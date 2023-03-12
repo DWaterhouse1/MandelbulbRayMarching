@@ -1,6 +1,8 @@
 #ifndef RAYMARCHER_PARAMSINTERFACE_HPP
 #define RAYMARCHER_PARAMSINTERFACE_HPP
 
+#include "ShadingModes.hpp"
+
 // wrenderer
 #include "UILayer.hpp"
 
@@ -38,10 +40,11 @@ struct SphericalCoord
 	}
 };
 
-enum class ShadingMode
+struct Colour
 {
-	kDiffuseLight,
-	kNormal,
+	float r = 1.0f;
+	float g = 1.0f;
+	float b = 1.0f;
 };
 
 class ParamsInterface : public wrndr::InterfaceLayer
@@ -75,7 +78,19 @@ public:
 
 	[[nodiscard]] int getResolution() const { return m_resolution; }
 
-	[[nodiscard]] float getResolutionScale() const { return m_resolutionScale; }
+	[[nodiscard]] bool resScaleDirty() const { return m_scaleDirtyFlag; }
+
+	[[nodiscard]] int getResolutionScale() const { return m_resolutionScale; }
+
+	[[nodiscard]] ShadingMode getShadingMode() const { return m_activeShadingMode; }
+
+	[[nodiscard]] Colour getDiffuseColour() const { return m_diffuseColour; }
+
+	[[nodiscard]] Colour getLowStepColour() const { return m_lowColour; }
+
+	[[nodiscard]] Colour getHighStepColour() const { return m_highColour; }
+
+	void resetResScaleDirty() { m_scaleDirtyFlag = false; }
 
 private:
 	void showParamatersWindow();
@@ -95,11 +110,18 @@ private:
 
 	int m_msaaCount = 1;
 	int m_resolution = 512;
-	float m_resolutionScale = 1.0f;
+	int m_resolutionScale = 1;
+	bool m_scaleDirtyFlag = false;
 
 	ImGuiIO* m_io = nullptr;
 
 	SphericalCoord m_cameraCoords{};
+
+	ShadingMode m_activeShadingMode = ShadingMode::kDiffuseLight;
+
+	Colour m_diffuseColour = { 1.0f };
+	Colour m_lowColour = { 1.0f };
+	Colour m_highColour = { 0.0f };
 };
 
 } // namespace rmcuda

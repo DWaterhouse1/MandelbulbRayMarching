@@ -31,15 +31,36 @@ struct Ray
 	float3 direction;
 };
 
-extern void basicRayMarching(cudaSurfaceObject_t surface, dim3 texDim, Camera camera, float exponent);
+extern void basicRayMarching(
+	cudaSurfaceObject_t surface,
+	dim3 texDim,
+	Camera camera,
+	float exponent,
+	int numSamples);
 
-// cuda
-__global__ void rayMarch(cudaSurfaceObject_t surface, dim3 pixelDim, Camera camera, float exponent);
-__device__ float3 march(Ray ray, float exponent);
-__device__ float sphereDistance(float3 position, float3 centre, float radius);
-__device__ float3 sphereNormal(float3 pos, float3 center, float radius);
-__device__ float mandelbulbDistance(float3 position, float exponent);
-__device__ float3 mandelbulbNormal(float3 pos, float exponent);
+extern void rayMarchDiffuseColour(
+	cudaSurfaceObject_t surface,
+	dim3 texDim,
+	Camera camera,
+	float exponent,
+	int numSamples,
+	float3 colour);
+
+extern void rayMarchNormalColour(
+	cudaSurfaceObject_t surface,
+	dim3 texDim,
+	Camera camera,
+	float exponent,
+	int numSamples);
+
+extern void rayMarchStepwiseColour(
+	cudaSurfaceObject_t surface,
+	dim3 texDim,
+	Camera camera,
+	float exponent,
+	int numSamples,
+	float3 lowColour,
+	float3 highColour);
 
 } // namespace compute
 } // namespace rmcuda
