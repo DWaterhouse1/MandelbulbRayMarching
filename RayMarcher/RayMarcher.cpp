@@ -90,6 +90,15 @@ void RayMarcher::run()
 
   while (!m_window.shouldClose())
   {
+    // TODO consider refactoring this wait while minimized into the window class
+    // itself. Might require running the main loop as a lambda?
+    if (m_window.isMinimized())
+    {
+      m_window.processInput();
+      m_window.update();
+      continue;
+    }
+
     float deltaTime = timer.elapsed();
     timer.reset();
 
