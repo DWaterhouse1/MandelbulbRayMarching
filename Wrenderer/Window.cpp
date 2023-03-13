@@ -113,6 +113,11 @@ void Window::show()
   glfwShowWindow(m_window);
 }
 
+bool Window::isMinimized() const
+{
+  return glfwGetWindowAttrib(m_window, GLFW_ICONIFIED);
+}
+
 void Window::resizeCallback(int width, int height)
 {
   glViewport(0, 0, width, height);

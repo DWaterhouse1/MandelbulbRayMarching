@@ -61,6 +61,13 @@ public:
   [[nodiscard]] GLFWwindow* getInternalPtr() const { return m_window; }
 
   /**
+  * Checks if this window object is minimized.
+  * 
+  * @return If the window is minimzed.
+  */
+  [[nodiscard]] bool isMinimized() const;
+
+  /**
   *
   */
   unsigned int registerResizeCallback(std::function<void(int, int)> callback);
