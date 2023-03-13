@@ -33,15 +33,15 @@ public:
 	void render();
 
 	template<typename T, typename... Args>
-	std::shared_ptr<T> pushLayer(Args... args)
+	T* pushLayer(Args... args)
 	{
 		static_assert(
 			std::is_base_of<InterfaceLayer, T>::value,
 			"Pushed type is not subclass of InterfaceLayer!");
 
-		std::shared_ptr<T> newLayer = std::make_shared<T>(std::forward<Args>(args)...);
+		T* newLayer = static_cast<T*>(m_interfaceLayers.emplace_back(std::make_unique<T>(std::forward<Args>(args)...)).get());
 
-		m_interfaceLayers.push_back(newLayer);
+		//m_interfaceLayers.push_back(newLayer);
 
 		newLayer->onAttach();
 
@@ -52,7 +52,7 @@ private:
 	ImGuiIO* m_io = nullptr;
 	bool m_usingDocking;
 
-	std::list<std::shared_ptr<InterfaceLayer>> m_interfaceLayers;
+	std::list<std::unique_ptr<InterfaceLayer>> m_interfaceLayers;
 };
 
 } // namespace rm

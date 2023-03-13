@@ -43,7 +43,11 @@ private:
 
 	// note: nvcc compiler has issues with std::optional
 	boost::optional<CudaInteropTexture> m_texture;
-	std::shared_ptr<ParamsInterface> m_paramsInterface;
+
+	// this raw pointer is non owning. It will be initialised with an object
+	// held alive by the UI context, which can be safely referenced as long as
+	// the context lives
+	ParamsInterface* m_paramsInterface;
 	unsigned int m_resizeFuncHandle = 0;
 
 	bool m_resizeDirtyFlag = false;

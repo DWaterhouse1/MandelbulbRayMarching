@@ -26,7 +26,8 @@ RayMarcher::RayMarcher(const int width, const int height) :
   m_vertexArray{},
   m_interfaceContext{ m_window },
   m_resizeWidth{ width },
-  m_resizeHeight{ height }
+  m_resizeHeight{ height },
+  m_paramsInterface{ nullptr }
 {
   std::vector<float> vertices =
   {

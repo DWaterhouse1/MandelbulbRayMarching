@@ -13,7 +13,6 @@ namespace rmcuda
 {
 namespace compute
 {
-//const float3 dummyColour = make_float3(0.0f);
 static constexpr float3 dummyColour = { 0.0f };
 
 __device__ float3 march(Ray ray, float exponent, float3 inColour);
