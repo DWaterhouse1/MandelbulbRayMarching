@@ -37,15 +37,17 @@ public:
 	{
 		static_assert(
 			std::is_base_of<InterfaceLayer, T>::value,
-			"Pushed type is not subclass of InterfaceLayer!");
+			"UI.hpp, UI::pushLayer Error : supplied type is not subclass of InterfaceLayer!");
 
-		T* newLayer = static_cast<T*>(m_interfaceLayers.emplace_back(std::make_unique<T>(std::forward<Args>(args)...)).get());
+		std::unique_ptr<T> newLayer = std::make_unique<T>(std::forward<Args>(args)...);
 
-		//m_interfaceLayers.push_back(newLayer);
+		T* retLayer = newLayer.get();
 
 		newLayer->onAttach();
 
-		return newLayer;
+		m_interfaceLayers.push_back(std::move(newLayer));
+
+		return retLayer;
 	}
 
 private:

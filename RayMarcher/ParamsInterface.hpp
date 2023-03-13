@@ -119,9 +119,9 @@ private:
 
 	ShadingMode m_activeShadingMode = ShadingMode::kDiffuseLight;
 
-	Colour m_diffuseColour = { 1.0f };
-	Colour m_lowColour = { 1.0f };
-	Colour m_highColour = { 0.0f };
+	Colour m_diffuseColour = { 1.0f, 1.0f, 1.0f };
+	Colour m_lowColour = { 1.0f, 1.0f, 1.0f };
+	Colour m_highColour = { 0.0f, 0.0f, 0.0f };
 };
 
 } // namespace rmcuda
