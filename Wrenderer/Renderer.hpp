@@ -40,7 +40,7 @@ concept gl_index_type =
 std::same_as<T, unsigned char> or
 std::same_as<T, unsigned int> or
 std::same_as<T, unsigned short int>;
-} // namespace
+} // namespace details
 
 /**
  * Makes a draw call on the currently bound vertex data.

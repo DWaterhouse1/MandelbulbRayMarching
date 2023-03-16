@@ -31,13 +31,6 @@ struct Ray
 	float3 direction;
 };
 
-extern void basicRayMarching(
-	cudaSurfaceObject_t surface,
-	dim3 texDim,
-	Camera camera,
-	float exponent,
-	int numSamples);
-
 extern void rayMarchDiffuseColour(
 	cudaSurfaceObject_t surface,
 	dim3 texDim,

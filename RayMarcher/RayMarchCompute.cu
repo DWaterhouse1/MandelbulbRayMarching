@@ -13,24 +13,21 @@ namespace rmcuda
 {
 namespace compute
 {
-static constexpr float3 dummyColour = { 0.0f };
-
-__device__ float3 march(Ray ray, float exponent, float3 inColour);
+//__device__ float3 march(Ray ray, float exponent);
 __device__ float sphereDistance(float3 position, float3 centre, float radius);
 __device__ float3 sphereNormal(float3 pos, float3 center, float radius);
 __device__ float mandelbulbDistance(float3 position, float exponent);
 __device__ float3 mandelbulbNormal(float3 pos, float exponent);
 
 // TODO respect differing aspect ratios
-template <typename ShadingPolicy>
+template<typename Test>
 __global__ void rayMarch(
 	cudaSurfaceObject_t surface,
 	dim3 pixelDim,
 	Camera camera,
 	float exponent,
 	int numSamples,
-	float3 inColourA,
-	float3 inColourB)
+	const Test& shadingStrategy)
 {
 	unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 	unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -58,7 +55,7 @@ __global__ void rayMarch(
 				camera.dir * camera.invhalffov)
 		};
 
-		color += testMarch<ShadingPolicy>(ray, exponent, inColourA, inColourB);
+		color += testMarch<Test>(ray, exponent, shadingStrategy);
 	}
 
 	color /= numSamples;
@@ -74,20 +71,6 @@ __global__ void rayMarch(
 	}
 }
 
-void basicRayMarching(cudaSurfaceObject_t surface, dim3 texDim, Camera camera, float exponent, int numSamples)
-{
-	dim3 thread(16, 16);
-	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
-	rayMarch<Diffuse><<<block, thread>>>(
-		surface,
-		texDim,
-		camera,
-		exponent,
-		numSamples,
-		dummyColour,
-		dummyColour);
-}
-
 void rayMarchDiffuseColour(
 	cudaSurfaceObject_t surface,
 	dim3 texDim,
@@ -96,16 +79,17 @@ void rayMarchDiffuseColour(
 	int numSamples,
 	float3 colour)
 {
+	DiffuseShading shadingStrategy{ colour };
+
 	dim3 thread(16, 16);
 	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
-	rayMarch<Diffuse><<<block, thread>>>(
+	rayMarch<DiffuseShading><<<block, thread>>>(
 		surface,
 		texDim,
 		camera,
 		exponent,
 		numSamples,
-		colour,
-		dummyColour);
+		shadingStrategy);
 }
 
 void rayMarchNormalColour(
@@ -115,16 +99,17 @@ void rayMarchNormalColour(
 	float exponent,
 	int numSamples)
 {
+	NormalShading shadingStrategy{};
+
 	dim3 thread(16, 16);
 	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
-	rayMarch<Normal><<<block, thread>>>(
+	rayMarch<NormalShading><<<block, thread>>>(
 		surface,
 		texDim,
 		camera,
 		exponent,
 		numSamples,
-		dummyColour,
-		dummyColour);
+		shadingStrategy);
 }
 
 void rayMarchStepwiseColour(
@@ -136,24 +121,28 @@ void rayMarchStepwiseColour(
 	float3 lowColour,
 	float3 highColour)
 {
+	StepwiseShading shadingStrategy{ lowColour, highColour };
+
 	dim3 thread(16, 16);
 	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
-	rayMarch<Stepwise><<<block, thread>>>(
+	rayMarch<StepwiseShading><<<block, thread>>>(
 		surface,
 		texDim,
 		camera,
 		exponent,
 		numSamples,
-		lowColour,
-		highColour);
+		shadingStrategy);
 }
 
-__device__ float3 march(Ray ray, float exponent, float3 inColour)
+template<typename ShadingMode>
+__device__ float3 march(Ray ray, float exponent, ShadingStrategy<ShadingMode>& shadingStrategy)
 {
 	float totalDistance = 0.0f;
 	const float minDistance = 0.0001f;
 	const float maxDistance = 100.0f;
 	const int maxSteps = 2000;
+
+	shadingStrategy.setMaxSteps(maxSteps);
 
 	const float3 sphereCenter = make_float3(0.0f);
 
@@ -176,7 +165,7 @@ __device__ float3 march(Ray ray, float exponent, float3 inColour)
 
 			float intensity = max(0.0f, dot(normal, lightDirection));
 
-			return inColour * intensity;
+			return make_float3(1.0f, 1.0f, 1.0f) * intensity;
 #else
 			return 0.5f * mandelbulbNormal(currentPosition, exponent) + 0.5f;
 #endif

@@ -7,9 +7,46 @@ namespace compute
 {
 extern __device__ float3 mandelbulbNormal(float3 pos, float exponent);
 
-struct Diffuse
+/**
+* Interface for the different shading modes.
+* 
+* @tparam Derived The derived class for the CRTP pattern.
+*/
+template <typename Derived>
+class ShadingStrategy
 {
-	__device__ static float3 shade(float3 position, float exponent, float3 inColourA, float3 inColourB, float stepRatio)
+public:
+	__device__ float3 colour(float3 position, float exponent) const
+	{
+		Derived& derived = static_cast<Derived&>(*this);
+		return derived.shade(position, exponent);
+		//return make_float3(0.4f, 0.3f, 0.8f);
+	}
+
+	__device__ void setNumSteps(int steps)
+	{
+		Derived& derived = static_cast<Derived&>(*this);
+		derived.setNumSteps(steps);
+	}
+
+	__device__ void setMaxSteps(int steps)
+	{
+		Derived& derived = static_cast<Derived&>(*this);
+		derived.setMaxSteps(steps);
+	}
+};
+
+/**
+* 
+*/
+class DiffuseShading : public ShadingStrategy<DiffuseShading>
+{
+public:
+	__host__ DiffuseShading(float3 diffuseColour)
+		: m_diffuseColour{ diffuseColour }
+	{}
+
+	__device__ float3 shade(float3 position, float exponent) const
 	{
 		float3 normal = mandelbulbNormal(position, exponent);
 
@@ -19,23 +56,45 @@ struct Diffuse
 
 		float intensity = max(0.0f, dot(normal, lightDirection));
 
-		return inColourA * intensity;
+		return m_diffuseColour * intensity;
 	}
+
+	__device__ void setNumSteps(int steps) {}
+	__device__ void setMaxSteps(int steps) {}
+
+private:
+	float3 m_diffuseColour;
 };
 
-struct Normal
+/**
+* 
+*/
+class NormalShading : public ShadingStrategy<NormalShading>
 {
-	__device__ static float3 shade(float3 position, float exponent, float3 inColourA, float3 inColourB, float stepRatio)
+public:
+	__device__ float3 shade(float3 position, float exponent) const
 	{
 		return 0.5f * mandelbulbNormal(position, exponent) + 0.5f;
 	}
+
+	__device__ void setNumSteps(int steps) {}
+	__device__ void setMaxSteps(int steps) {}
 };
 
-struct Stepwise
+/**
+* 
+*/
+class StepwiseShading : public ShadingStrategy<StepwiseShading>
 {
-	__device__ static float3 shade(float3 position, float exponent, float3 inColourA, float3 inColourB, float stepRatio)
+public:
+	__host__ StepwiseShading(float3 nearColour, float3 farColour)
+		: m_nearColour{ nearColour },
+			m_farColour{ farColour }
+	{}
+
+	__device__ float3 shade(float3 position, float exponent) const
 	{
-		const float correction = 0.3f;
+		float stepRatio = static_cast<float>(m_nearSteps) / static_cast<float>(m_farSteps);
 
 		/* The mandelbulb is a very complicated shape, and so a very high value of
 		*  max steps is required in order to capture all the detail. However,
@@ -43,19 +102,33 @@ struct Stepwise
 		*  stepRatio will be very skewed, and a correction is needed to pull out
 		*  the aesthetically interesting features of the object.
 		*/
+		static constexpr float correction = 0.3f;
+
 		float mix = pow(stepRatio, correction);
 
-		return mix * inColourA + (1 - mix) * inColourB;
+		return mix * m_nearColour + (1 - mix) * m_farColour;
 	}
+
+	__device__ void setNumSteps(int steps) { m_nearSteps = steps; }
+	__device__ void setMaxSteps(int steps) { m_farSteps = steps; }
+
+private:
+	float3 m_nearColour;
+	float3 m_farColour;
+
+	int m_nearSteps = 0;
+	int m_farSteps = 0;
 };
 
-template<typename ShadingPolicy>
-__device__ float3 testMarch(Ray ray, float exponent, float3 inColourA, float3 inColourB)
+template<typename Mode>
+__device__ float3 testMarch(Ray ray, float exponent, ShadingStrategy<Mode> shadingStrategy)
 {
 	float totalDistance = 0.0f;
 	const float minDistance = 0.0001f;
 	const float maxDistance = 100.0f;
 	const int maxSteps = 2000;
+
+	shadingStrategy.setMaxSteps(maxSteps);
 
 	const float3 sphereCenter = make_float3(0.0f);
 
@@ -69,7 +142,10 @@ __device__ float3 testMarch(Ray ray, float exponent, float3 inColourA, float3 in
 		if (stepDistance < minDistance)
 		{
 			// hit
-			return ShadingPolicy::shade(currentPosition, exponent, inColourA, inColourB, (float)step / float(maxSteps));
+
+			shadingStrategy.setNumSteps(step);
+
+			return shadingStrategy.colour(currentPosition, exponent);
 		}
 
 		if (totalDistance > maxDistance) break;
