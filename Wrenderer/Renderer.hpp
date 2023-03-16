@@ -33,7 +33,7 @@ enum class Primitive
 
 namespace Renderer
 {
-namespace
+namespace details
 {
 template <typename T>
 concept gl_index_type =
@@ -63,7 +63,7 @@ void draw(const VertexArray& vao, Primitive primitive, int offset, int vertices)
  *
  * @note Index data type must be uchar, uint, or ushort.
  */
-template <gl_index_type T>
+template <details::gl_index_type T>
 void drawIndices(const VertexArray& vao, Primitive primitive, int count, int* indices = nullptr)
 {
   glBindVertexArray(static_cast<GLuint>(vao));
