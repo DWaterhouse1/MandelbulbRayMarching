@@ -29,6 +29,14 @@ public:
 	void run();
 
 private:
+	void initBuffers();
+	void initTexture(int width, int height);
+	void initUI();
+
+	void process(float deltaTime);
+	void render();
+	void endAndUpdate();
+
 	void checkResize();
 	void updateMultisamples();
 
