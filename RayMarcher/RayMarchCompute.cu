@@ -7,27 +7,22 @@
 #include <curand_kernel.h>
 
 #include "Shading.cuh"
+#include "Mandelbulb.cuh"
 
 // nvcc will compile qualified namespaces, but it breaks intellisense
 namespace rmcuda
 {
 namespace compute
 {
-//__device__ float3 march(Ray ray, float exponent);
-__device__ float sphereDistance(float3 position, float3 centre, float radius);
-__device__ float3 sphereNormal(float3 pos, float3 center, float radius);
-__device__ float mandelbulbDistance(float3 position, float exponent);
-__device__ float3 mandelbulbNormal(float3 pos, float exponent);
-
 // TODO respect differing aspect ratios
-template<typename Test>
+template<typename Strategy>
 __global__ void rayMarch(
 	cudaSurfaceObject_t surface,
 	dim3 pixelDim,
 	Camera camera,
 	float exponent,
 	int numSamples,
-	const Test& shadingStrategy)
+	Strategy shadingStrategy)
 {
 	unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 	unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -55,7 +50,7 @@ __global__ void rayMarch(
 				camera.dir * camera.invhalffov)
 		};
 
-		color += testMarch<Test>(ray, exponent, shadingStrategy);
+		color += march<Strategy>(ray, exponent, shadingStrategy);
 	}
 
 	color /= numSamples;
@@ -79,11 +74,11 @@ void rayMarchDiffuseColour(
 	int numSamples,
 	float3 colour)
 {
-	DiffuseShading shadingStrategy{ colour };
+	DiffuseStrategy shadingStrategy{ colour };
 
 	dim3 thread(16, 16);
 	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
-	rayMarch<DiffuseShading><<<block, thread>>>(
+	rayMarch<<<block, thread>>>(
 		surface,
 		texDim,
 		camera,
@@ -99,11 +94,11 @@ void rayMarchNormalColour(
 	float exponent,
 	int numSamples)
 {
-	NormalShading shadingStrategy{};
+	NormalStrategy shadingStrategy{};
 
 	dim3 thread(16, 16);
 	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
-	rayMarch<NormalShading><<<block, thread>>>(
+	rayMarch<<<block, thread>>>(
 		surface,
 		texDim,
 		camera,
@@ -121,11 +116,11 @@ void rayMarchStepwiseColour(
 	float3 lowColour,
 	float3 highColour)
 {
-	StepwiseShading shadingStrategy{ lowColour, highColour };
+	StepwiseStrategy shadingStrategy{ lowColour, highColour };
 
 	dim3 thread(16, 16);
 	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
-	rayMarch<StepwiseShading><<<block, thread>>>(
+	rayMarch<<<block, thread>>>(
 		surface,
 		texDim,
 		camera,
@@ -134,129 +129,5 @@ void rayMarchStepwiseColour(
 		shadingStrategy);
 }
 
-template<typename ShadingMode>
-__device__ float3 march(Ray ray, float exponent, ShadingStrategy<ShadingMode>& shadingStrategy)
-{
-	float totalDistance = 0.0f;
-	const float minDistance = 0.0001f;
-	const float maxDistance = 100.0f;
-	const int maxSteps = 2000;
-
-	shadingStrategy.setMaxSteps(maxSteps);
-
-	const float3 sphereCenter = make_float3(0.0f);
-
-	for (int i = 0; i < maxSteps; ++i)
-	{
-		float3 currentPosition = ray.origin + (totalDistance * ray.direction);
-
-		//float stepDistance = sphereDistance(currentPosition, sphereCenter, 1.0f);
-		float stepDistance = mandelbulbDistance(currentPosition, exponent);
-
-		if (stepDistance < minDistance)
-		{
-			// hit
-#if 1
-			float3 normal = mandelbulbNormal(currentPosition, exponent);
-
-			float3 lightPosition = make_float3(2.0, -5.0, 3.0);
-
-			float3 lightDirection = normalize(currentPosition - lightPosition);
-
-			float intensity = max(0.0f, dot(normal, lightDirection));
-
-			return make_float3(1.0f, 1.0f, 1.0f) * intensity;
-#else
-			return 0.5f * mandelbulbNormal(currentPosition, exponent) + 0.5f;
-#endif
-		}
-
-		if (totalDistance > maxDistance) break;
-
-		totalDistance += stepDistance;
-	}
-
-	// didn't hit
-	return make_float3(0.05f, 0.05f, 0.05f);
-}
-
-__device__ float mandelbulbDistance(float3 position, float exponent)
-{
-	float3 z = position;
-
-	const int maxItt = 20;
-	//const float exponent = 9.0f;
-
-	//int steps = 0;
-
-	float dr = 1.0f;
-	float r = 0.0f;
-
-	for (int i = 0; i < maxItt; ++i)
-	{
-		//steps = i;
-		r = length(z);
-		if (r > 4.0f) break;
-
-		// convert to spherical coordinates
-		float theta = acos(z.z / r);
-		float phi = atan(z.y / z.x);
-		dr = pow(r, exponent - 1.0f) * exponent * dr + 1.0f;
-
-		// scale and rotate
-		float zr = pow(r, exponent);
-		theta *= exponent;
-		phi *= exponent;
-
-		// convert back to cartesian
-		z = zr * make_float3(
-			sin(theta) * cos(phi),
-			sin(theta) * sin(phi),
-			cos(theta));
-
-		z += position;
-	}
-
-	return 0.5f * log(r) * r / dr;
-}
-
-__device__ float3 mandelbulbNormal(float3 pos, float exponent)
-{
-	const float peturb = 1e4;
-
-	float fx =
-		mandelbulbDistance(make_float3(pos.x + peturb, pos.y, pos.z), exponent) -
-		mandelbulbDistance(make_float3(pos.x - peturb, pos.y, pos.z), exponent);
-	float fy =
-		mandelbulbDistance(make_float3(pos.x, pos.y + peturb, pos.z), exponent) -
-		mandelbulbDistance(make_float3(pos.x, pos.y - peturb, pos.z), exponent);
-	float fz =
-		mandelbulbDistance(make_float3(pos.x, pos.y, pos.z + peturb), exponent) -
-		mandelbulbDistance(make_float3(pos.x, pos.y, pos.z - peturb), exponent);
-
-	return normalize(make_float3(fx, fy, fz));
-}
-
-__device__ float3 sphereNormal(float3 pos, float3 center, float radius)
-{
-	const float peturb = 1e4;
-
-	float fx =
-		sphereDistance(make_float3(pos.x + peturb, pos.y, pos.z), center, radius) -
-		sphereDistance(make_float3(pos.x - peturb, pos.y, pos.z), center, radius);
-	float fy =
-		sphereDistance(make_float3(pos.x, pos.y + peturb, pos.z), center, radius) -
-		sphereDistance(make_float3(pos.x, pos.y - peturb, pos.z), center, radius);
-	float fz =
-		sphereDistance(make_float3(pos.x, pos.y, pos.z + peturb), center, radius) -
-		sphereDistance(make_float3(pos.x, pos.y, pos.z - peturb), center, radius);
-
-	return normalize(make_float3(fx, fy, fz));
-}
-
-__device__ float sphereDistance(float3 position, float3 center, float radius)
-{
-	return length(position - center) - radius;
-}
 } // namespace rmcuda
 } // namespace compute

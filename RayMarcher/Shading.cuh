@@ -1,48 +1,19 @@
 #ifndef RAYMARCHER_SHADING_CUH
 #define RAYMARCHER_SHADING_CUH
 
+#include "Mandelbulb.cuh"
+
 namespace rmcuda
 {
 namespace compute
 {
-extern __device__ float3 mandelbulbNormal(float3 pos, float exponent);
-
-/**
-* Interface for the different shading modes.
-* 
-* @tparam Derived The derived class for the CRTP pattern.
-*/
-template <typename Derived>
-class ShadingStrategy
-{
-public:
-	__device__ float3 colour(float3 position, float exponent) const
-	{
-		Derived& derived = static_cast<Derived&>(*this);
-		return derived.shade(position, exponent);
-		//return make_float3(0.4f, 0.3f, 0.8f);
-	}
-
-	__device__ void setNumSteps(int steps)
-	{
-		Derived& derived = static_cast<Derived&>(*this);
-		derived.setNumSteps(steps);
-	}
-
-	__device__ void setMaxSteps(int steps)
-	{
-		Derived& derived = static_cast<Derived&>(*this);
-		derived.setMaxSteps(steps);
-	}
-};
-
 /**
 * 
 */
-class DiffuseShading : public ShadingStrategy<DiffuseShading>
+class DiffuseStrategy
 {
 public:
-	__host__ DiffuseShading(float3 diffuseColour)
+	__host__ DiffuseStrategy(float3 diffuseColour)
 		: m_diffuseColour{ diffuseColour }
 	{}
 
@@ -63,13 +34,13 @@ public:
 	__device__ void setMaxSteps(int steps) {}
 
 private:
-	float3 m_diffuseColour;
+	const float3 m_diffuseColour;
 };
 
 /**
 * 
 */
-class NormalShading : public ShadingStrategy<NormalShading>
+class NormalStrategy
 {
 public:
 	__device__ float3 shade(float3 position, float exponent) const
@@ -84,17 +55,19 @@ public:
 /**
 * 
 */
-class StepwiseShading : public ShadingStrategy<StepwiseShading>
+class StepwiseStrategy
 {
 public:
-	__host__ StepwiseShading(float3 nearColour, float3 farColour)
+	__host__ StepwiseStrategy(float3 nearColour, float3 farColour)
 		: m_nearColour{ nearColour },
 			m_farColour{ farColour }
 	{}
 
 	__device__ float3 shade(float3 position, float exponent) const
 	{
-		float stepRatio = static_cast<float>(m_nearSteps) / static_cast<float>(m_farSteps);
+		const float stepRatio =
+			static_cast<float>(m_nearSteps) /
+			static_cast<float>(m_farSteps);
 
 		/* The mandelbulb is a very complicated shape, and so a very high value of
 		*  max steps is required in order to capture all the detail. However,
@@ -113,15 +86,15 @@ public:
 	__device__ void setMaxSteps(int steps) { m_farSteps = steps; }
 
 private:
-	float3 m_nearColour;
-	float3 m_farColour;
+	const float3 m_nearColour;
+	const float3 m_farColour;
 
 	int m_nearSteps = 0;
 	int m_farSteps = 0;
 };
 
-template<typename Mode>
-__device__ float3 testMarch(Ray ray, float exponent, ShadingStrategy<Mode> shadingStrategy)
+template<typename ShadingStrategy>
+__device__ float3 march(Ray ray, float exponent, ShadingStrategy shadingStrategy)
 {
 	float totalDistance = 0.0f;
 	const float minDistance = 0.0001f;
@@ -135,8 +108,7 @@ __device__ float3 testMarch(Ray ray, float exponent, ShadingStrategy<Mode> shadi
 	for (int step = 0; step < maxSteps; ++step)
 	{
 		float3 currentPosition = ray.origin + (totalDistance * ray.direction);
-
-		//float stepDistance = sphereDistance(currentPosition, sphereCenter, 1.0f);
+;
 		float stepDistance = mandelbulbDistance(currentPosition, exponent);
 
 		if (stepDistance < minDistance)
@@ -145,7 +117,7 @@ __device__ float3 testMarch(Ray ray, float exponent, ShadingStrategy<Mode> shadi
 
 			shadingStrategy.setNumSteps(step);
 
-			return shadingStrategy.colour(currentPosition, exponent);
+			return shadingStrategy.shade(currentPosition, exponent);
 		}
 
 		if (totalDistance > maxDistance) break;
