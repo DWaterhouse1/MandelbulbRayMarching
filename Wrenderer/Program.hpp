@@ -69,6 +69,13 @@ public:
    */
   [[nodiscard]] std::string getLinkLog() const;
 
+  /**
+  * Gets the location of the named uniform.
+  * 
+  * @param name Name of the uniform to find.
+  * 
+  * @return Location of the uniform.
+  */
   [[nodiscard]] int getUniformLocation(const std::string& name) const;
 
   void setUniform(int location, int value);

@@ -68,12 +68,22 @@ public:
   [[nodiscard]] bool isMinimized() const;
 
   /**
-  *
+  * Registers the supplied function object to be called when the window is
+  *   resized. The two int parameters will be supplied with window width and
+  *   height respectively.
+  * 
+  * @param callback The function object to register as a resize callback.
+  * 
+  * @return The handle to the newly registered callback. Will take a non zero
+  *   value when the callback function is registered.
   */
   unsigned int registerResizeCallback(std::function<void(int, int)> callback);
 
   /**
-  *
+  * Deregesters the resize callback function object at the supplied handle. The
+  *   handle will be set to 0 after deregistration.
+  * 
+  * @param handle The handle to the callback to be deregistered.
   */
   void deregisterResizeCallback(unsigned int& handle);
 

@@ -17,13 +17,15 @@ set(RAYMARCHER_HEADERS
 		CudaHelpers.hpp
 		ShadingModes.hpp
 		RayMarchCompute.cuh
-		Shading.cuh)
+		Shading.cuh
+		Mandelbulb.cuh)
 
 set(RAYMARCHER_SOURCES
 		RayMarcher.cpp
 		CudaTexture.cpp
 		ParamsInterface.cpp
-		RayMarchCompute.cu)
+		RayMarchCompute.cu
+		Mandelbulb.cu)
 
 add_library(RayMarcher
 	STATIC

@@ -4,7 +4,7 @@
 namespace rmcuda
 {
 /**
-* 
+* Enumerates the possible shading modes.
 */
 enum class ShadingMode
 {

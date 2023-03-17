@@ -18,6 +18,10 @@
 
 namespace wrndr
 {
+/**
+* Defines a UI context, which manages and displays a stack of objects derived
+*		from InterfaceLayer.
+*/
 class UI
 {
 public:
@@ -27,32 +31,63 @@ public:
 	UI(const UI&) = delete;
 	UI& operator=(const UI&) = delete;
 
+	/**
+	* Calls the tick function on all held InterfaceLayer objects.
+	* 
+	* @deltaTime Elapsed time.
+	*/
 	void tick(float deltaTime);
+
+	/**
+	* Brings up the ImGui context for rendering a frame.
+	*/
 	void startFrame();
+
+	/**
+	* Finishes ImGui rendering for a frame.
+	*/
 	void endFrame();
+
+	/**
+	* Executes ImGui render logic.
+	*/
 	void render();
 
+	/**
+	* Creates and adds an InterfaceLayer derived object. The object is owned by
+	*		this class and kept alive until it is popped or this class is destroyed.
+	*		Additionally calls the layer's onAttach method.
+	* 
+	* @param args The argument list for the constructor of the new layer.
+	* 
+	* @tparam T the type of the new layer. Must derive publicly from InterfaceLayer
+	* @tparam Args Parameter pack for the constructor of T.
+	* 
+	* @return Pointer to the newly constructed layer.
+	*/
 	template<typename T, typename... Args>
-	std::shared_ptr<T> pushLayer(Args... args)
+	T* pushLayer(Args... args)
 	{
 		static_assert(
 			std::is_base_of<InterfaceLayer, T>::value,
-			"Pushed type is not subclass of InterfaceLayer!");
+			"UI.hpp, UI::pushLayer Error : supplied type is not subclass of InterfaceLayer!");
 
-		std::shared_ptr<T> newLayer = std::make_shared<T>(std::forward<Args>(args)...);
+		std::unique_ptr<T> newLayer = std::make_unique<T>(std::forward<Args>(args)...);
 
-		m_interfaceLayers.push_back(newLayer);
+		T* retLayer = newLayer.get();
 
 		newLayer->onAttach();
 
-		return newLayer;
+		m_interfaceLayers.push_back(std::move(newLayer));
+
+		return retLayer;
 	}
 
 private:
 	ImGuiIO* m_io = nullptr;
 	bool m_usingDocking;
 
-	std::list<std::shared_ptr<InterfaceLayer>> m_interfaceLayers;
+	std::list<std::unique_ptr<InterfaceLayer>> m_interfaceLayers;
 };
 
 } // namespace rm
