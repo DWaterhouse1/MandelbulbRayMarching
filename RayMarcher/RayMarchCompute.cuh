@@ -5,6 +5,12 @@
 
 namespace rmcuda
 {
+
+/**
+* Structure which holds camera position and orientation in terms of a set of
+* camera local orthonormal basis vectors, along with field of view values stored
+* as the reciprocal of the tangent of half of the field of view in radians.
+*/
 struct Camera
 {
 	float3 pos;
@@ -25,12 +31,27 @@ struct Camera
 
 namespace compute
 {
+/**
+* Struct defining a ray in terms of position and direction.
+*/
 struct Ray
 {
 	float3 origin;
 	float3 direction;
 };
 
+/**
+* Launches a ray marching computation on the supplied image agains a mandelbulb
+*		SDF. Shades based on a very basic lambertian diffuse colour model.
+*
+* @param surface Handle to the CUDA surface on which to draw the image.
+* @param texDim Defines the image extent.
+* @param camera Defines the camera position and orientation.
+* @param exponent Defines the exponent value to be uesd in the manedlbulb
+*		calculation.
+* @param numSamples Defines the number of samples to take per pixel.
+* @param colour Base colour to use for the shading model.
+*/
 extern void rayMarchDiffuseColour(
 	cudaSurfaceObject_t surface,
 	dim3 texDim,
@@ -39,6 +60,17 @@ extern void rayMarchDiffuseColour(
 	int numSamples,
 	float3 colour);
 
+/**
+* Launches a ray marching computation on the supplied image agains a mandelbulb
+*		SDF. Shades based on calculated normal values transformed to RGB.
+*
+* @param surface Handle to the CUDA surface on which to draw the image.
+* @param texDim Defines the image extent.
+* @param camera Defines the camera position and orientation.
+* @param exponent Defines the exponent value to be uesd in the manedlbulb
+*		calculation.
+* @param numSamples Defines the number of samples to take per pixel.
+*/
 extern void rayMarchNormalColour(
 	cudaSurfaceObject_t surface,
 	dim3 texDim,
@@ -46,6 +78,20 @@ extern void rayMarchNormalColour(
 	float exponent,
 	int numSamples);
 
+/**
+* Launches a ray marching computation on the supplied image agains a mandelbulb
+*		SDF. Shades by interpolating between supplied colours, based on the number
+*		of steps taken by the ray marching.
+*
+* @param surface Handle to the CUDA surface on which to draw the image.
+* @param texDim Defines the image extent.
+* @param camera Defines the camera position and orientation.
+* @param exponent Defines the exponent value to be uesd in the manedlbulb
+*		calculation.
+* @param numSamples Defines the number of samples to take per pixel.
+* @param lowColour Colour used for lower number of steps taken.
+* @param highColour Colur used for high number of steps taken.
+*/
 extern void rayMarchStepwiseColour(
 	cudaSurfaceObject_t surface,
 	dim3 texDim,

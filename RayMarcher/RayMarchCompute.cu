@@ -14,9 +14,71 @@ namespace rmcuda
 {
 namespace compute
 {
-// TODO respect differing aspect ratios
+/**
+* Marches the supplied ray and returns the colour from any intersection. Shading
+* is defined by the ShadingStrategy.
+* 
+* @tparam ShadingStrategy The type of the ShadingStrategy object to use.
+* 
+* @param ray Ray to march along.
+* @param exponent Exponent value to use in mandelbulb calculations.
+* @param shadingStrategy Concrete shading strategy object to be used to calculate
+*		colour values.
+* 
+* @return The colour this marched ray should contribute to the pixel colour.
+*/
+template<typename ShadingStrategy>
+__device__ float3 march(Ray ray, float exponent, ShadingStrategy shadingStrategy)
+{
+	float totalDistance = 0.0f;
+	const float minDistance = 0.0001f;
+	const float maxDistance = 100.0f;
+	const int maxSteps = 2000;
+
+	shadingStrategy.setMaxSteps(maxSteps);
+
+	const float3 sphereCenter = make_float3(0.0f);
+
+	for (int step = 0; step < maxSteps; ++step)
+	{
+		float3 currentPosition = ray.origin + (totalDistance * ray.direction);
+		;
+		float stepDistance = mandelbulbDistance(currentPosition, exponent);
+
+		if (stepDistance < minDistance)
+		{
+			// hit
+
+			shadingStrategy.setNumSteps(step);
+
+			return shadingStrategy.shade(currentPosition, exponent);
+		}
+
+		if (totalDistance > maxDistance) break;
+
+		totalDistance += stepDistance;
+	}
+
+	// didn't hit
+	return make_float3(0.05f, 0.05f, 0.05f);
+}
+
+/**
+* Entry point for the ray marching algorithm used to calculate the mandelbulb
+*		image.
+* 
+* @tparam Strategy The shading strategy to use.
+* 
+* @param surface Handle to the CUDA surface object to be used for drawing the
+*		mandelbulb
+* @param pixelDim Specifies in the x and y elements the image extent.
+* @param camera Defines the camera location and orientation.
+* @param exponent The exponent value to be used in mandelbulb calculations.
+* @param numSamples The number of samples to take for a given pixel.
+* @param shadingStrategy The strategy object used to calulate colour.
+*/
 template<typename Strategy>
-__global__ void rayMarch(
+__global__ void calculateMandelbulb(
 	cudaSurfaceObject_t surface,
 	dim3 pixelDim,
 	Camera camera,
@@ -78,7 +140,7 @@ void rayMarchDiffuseColour(
 
 	dim3 thread(16, 16);
 	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
-	rayMarch<<<block, thread>>>(
+	calculateMandelbulb<<<block, thread>>>(
 		surface,
 		texDim,
 		camera,
@@ -98,7 +160,7 @@ void rayMarchNormalColour(
 
 	dim3 thread(16, 16);
 	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
-	rayMarch<<<block, thread>>>(
+	calculateMandelbulb<<<block, thread>>>(
 		surface,
 		texDim,
 		camera,
@@ -120,7 +182,7 @@ void rayMarchStepwiseColour(
 
 	dim3 thread(16, 16);
 	dim3 block(texDim.x / thread.x, texDim.y / thread.y);
-	rayMarch<<<block, thread>>>(
+	calculateMandelbulb<<<block, thread>>>(
 		surface,
 		texDim,
 		camera,
