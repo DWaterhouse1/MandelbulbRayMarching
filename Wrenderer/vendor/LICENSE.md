@@ -1,4 +1,4 @@
-The ImGui implementation files are copied from https://github.com/ocornut/imgui under the following MIT licence:
+The ImGui implementation files are copied from https://github.com/ocornut/imgui under the following MIT license:
 
 The MIT License (MIT)
 
