@@ -7,6 +7,12 @@
 namespace rmcuda
 {
 // adapted from https://gist.github.com/gongzhitaao/7062087
+
+/**
+* Timer using high precision clock.
+* 
+* @tparam T Type representing time. Must be floating point.
+*/
 template <typename T>
 class Timer
 {
@@ -15,8 +21,16 @@ class Timer
 public:
   Timer() : m_begin(clock_t::now()) {}
 
+  /**
+  * Resets the timer to zero.
+  */
   void reset() { m_begin = clock_t::now(); }
 
+  /**
+  * Gets the elapsed time.
+  * 
+  * @return Elapsed time.
+  */
   T elapsed() const
   {
     return std::chrono::duration_cast<second_t>

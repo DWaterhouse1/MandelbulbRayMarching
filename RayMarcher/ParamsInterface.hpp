@@ -20,6 +20,9 @@ static constexpr float d2r = PI / 180.0f;
 static constexpr float r2d = 180.0f / PI;
 } // namespace constants
 
+/**
+* Tuple of float values representing spherical coordinates in radians.
+*/
 struct SphericalCoord
 {
 	float rho = 1.5f;
@@ -40,6 +43,9 @@ struct SphericalCoord
 	}
 };
 
+/**
+* Tuple of floats representing an RGB colour value.
+*/
 struct Colour
 {
 	float r = 1.0f;
@@ -47,6 +53,9 @@ struct Colour
 	float b = 1.0f;
 };
 
+/**
+* User interface object for managing camera position and ray marching parameters.
+*/
 class ParamsInterface : public wrndr::InterfaceLayer
 {
 public:
@@ -60,36 +69,101 @@ public:
 
 	virtual void tick(float deltaTime) override;
 
+	/**
+	* Sets the rate at which the exponent should advance in some unit time.
+	* 
+	* @param rate Rate to advance.
+	*/
 	void setExponentScrollRate(float rate) { m_rate = rate; }
 
-	void setExponent(float exp) { }
-
+	/**
+	* Gets the current value of the mandelbulb exponent.
+	* 
+	* @return Exponent value.
+	*/
 	[[nodiscard]] float getExponent() const { return m_exponent; }
 
+	/**
+	* Gets the Rho value for the current camera position.
+	* 
+	* @return Rho value.
+	*/
 	[[nodiscard]] float getCameraRho() const { return m_cameraCoords.rho; }
 
+	/**
+	* Gets the Theta value for the current camera position.
+	*
+	* @return Theta value.
+	*/
 	[[nodiscard]] float getCameraTheta() const { return m_cameraCoords.theta; }
 
+	/**
+	* Gets the Phi value for the current camera position.
+	*
+	* @return Phi value.
+	*/
 	[[nodiscard]] float getCameraPhi() const { return m_cameraCoords.phi; }
 
+	/**
+	* Gets the current camera position in spherical coordinates.
+	* 
+	* @return Camera coordinates.
+	*/
 	[[nodiscard]] SphericalCoord getCameraCoords() const { return m_cameraCoords; }
 
+	/**
+	* Gets the current value for the multisample count.
+	* 
+	* @return Multisample count
+	*/
 	[[nodiscard]] int getSampleCount() const { return m_msaaCount; }
 
-	[[nodiscard]] int getResolution() const { return m_resolution; }
-
+	/**
+	* Gets the value of the dirty flag indicating the resolution needs to be updated.
+	* 
+	* @return True if resolution scale is dirty.
+	*/
 	[[nodiscard]] bool resScaleDirty() const { return m_scaleDirtyFlag; }
 
+	/**
+	* Gets the current value of the resolution scaling factor.
+	* 
+	* @return Resolution scaling factor.
+	*/
 	[[nodiscard]] int getResolutionScale() const { return m_resolutionScale; }
 
+	/**
+	* Gets the value of the current shading mode.
+	* 
+	* @return shading mode.
+	*/
 	[[nodiscard]] ShadingMode getShadingMode() const { return m_activeShadingMode; }
 
+	/**
+	* Gets the current diffuse shading colour value.
+	* 
+	* @return Colour.
+	*/
 	[[nodiscard]] Colour getDiffuseColour() const { return m_diffuseColour; }
 
+	/**
+	* Gets the current colour value for low step numbers.
+	* 
+	* @return Colour
+	*/
 	[[nodiscard]] Colour getLowStepColour() const { return m_lowColour; }
 
+	/**
+	* Gets the current colour value for high step numbers.
+	* 
+	* @return Colour.
+	*/
 	[[nodiscard]] Colour getHighStepColour() const { return m_highColour; }
 
+	/**
+	* Resets the resolution scaling dirty flag, to indicate that resolution has
+	* been successfully updated.
+	*/
 	void resetResScaleDirty() { m_scaleDirtyFlag = false; }
 
 private:
@@ -109,7 +183,6 @@ private:
 	bool m_exponentPlay = true;
 
 	int m_msaaCount = 1;
-	int m_resolution = 512;
 	int m_resolutionScale = 1;
 	bool m_scaleDirtyFlag = false;
 

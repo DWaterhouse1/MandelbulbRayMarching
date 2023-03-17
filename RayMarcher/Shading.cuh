@@ -18,6 +18,8 @@ namespace compute
 * ray intersection to the pixel colour, as the float3 it returns.
 */
 
+// -----------------------------------------------------------------------------
+
 /**
 * This strategy shades based on a very simple lambert model relative to a static
 * light at a hardcoded position of (2.0, -5.0, 3.0). The set_Steps functions are
