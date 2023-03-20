@@ -12,7 +12,7 @@ A simple toy project to visualise the mandelbulb fractal with standard ray march
 - ImGui
 - Boost: Optional and Numeric Conversions
 
-Built with CMake.
+Built with CMake, but does not export a target. You may need to manually manage the dependencies if you would like to build locally.
 
 ### RayMarcher
 
@@ -24,4 +24,4 @@ Very thin OpenGL abstraction.
 
 ### Performance concerns
 
-The ray marching algorithm runs at interactive rates, but is very intensive, at least as implemented. May be prohibitively slow on slower GPUs. The performance is highly dependant on the multisampling and resolution scaling options. The stepwise shading mode runs significantly faster, since it doesn't need to calculate normal values of the SDF like the diffuse and normal shading modes.
+The ray marching algorithm runs at interactive rates, but is very intensive, at least as implemented. May be prohibitively slow on older GPUs. The performance is highly dependant on the multisampling and resolution scaling options. The stepwise shading mode runs significantly faster, since it doesn't need to calculate normalised gradient values of the SDF like the diffuse and normal shading modes.
