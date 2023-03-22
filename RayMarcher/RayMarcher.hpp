@@ -28,6 +28,8 @@ public:
 
 	void run();
 
+	[[nodiscard]] static bool hasCudaSupport();
+
 private:
 	void initBuffers();
 	void initTexture(int width, int height);
