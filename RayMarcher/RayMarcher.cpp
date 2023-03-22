@@ -66,6 +66,14 @@ void RayMarcher::run()
   }
 }
 
+bool RayMarcher::hasCudaSupport()
+{
+  int n = 0;
+  int* count = &n;
+  cudaError_t result = cudaGetDeviceCount(count);
+  return (result == cudaSuccess && n > 0);
+}
+
 void RayMarcher::initBuffers()
 {
   std::vector<float> vertices =
