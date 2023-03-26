@@ -36,6 +36,8 @@ RayMarcher::RayMarcher(const int width, const int height) :
   m_texture->cudaRegister();
 
   initUI();
+
+  m_randomState.seed(time(NULL));
 }
 
 void RayMarcher::run()
@@ -174,6 +176,8 @@ void RayMarcher::process(float deltaTime)
   checkResize();
   updateMultisamples();
 
+  unsigned long long randomSeed = m_distribution(m_randomState);
+
   switch (m_paramsInterface->getShadingMode())
   {
   case ShadingMode::kDiffuseLight:
@@ -184,7 +188,8 @@ void RayMarcher::process(float deltaTime)
       cam,
       exponent,
       m_numSamples,
-      make_float3(colour.r, colour.g, colour.b));
+      make_float3(colour.r, colour.g, colour.b),
+      randomSeed);
     break;
   }
   case ShadingMode::kNormalColor:
@@ -192,7 +197,8 @@ void RayMarcher::process(float deltaTime)
       compute::rayMarchNormalColour,
       cam,
       exponent,
-      m_numSamples);
+      m_numSamples,
+      randomSeed);
     break;
   case ShadingMode::kStepwiseShaded:
   {
@@ -204,7 +210,8 @@ void RayMarcher::process(float deltaTime)
       exponent,
       m_numSamples,
       make_float3(low.r, low.g, low.b),
-      make_float3(high.r, high.g, high.b));
+      make_float3(high.r, high.g, high.b),
+      randomSeed);
     break;
   }
   }

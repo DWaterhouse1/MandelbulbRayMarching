@@ -58,7 +58,8 @@ extern void rayMarchDiffuseColour(
 	Camera camera,
 	float exponent,
 	int numSamples,
-	float3 colour);
+	float3 colour,
+	unsigned long long seed);
 
 /**
 * Launches a ray marching computation on the supplied image agains a mandelbulb
@@ -76,7 +77,8 @@ extern void rayMarchNormalColour(
 	dim3 texDim,
 	Camera camera,
 	float exponent,
-	int numSamples);
+	int numSamples,
+	unsigned long long seed);
 
 /**
 * Launches a ray marching computation on the supplied image agains a mandelbulb
@@ -99,7 +101,8 @@ extern void rayMarchStepwiseColour(
 	float exponent,
 	int numSamples,
 	float3 lowColour,
-	float3 highColour);
+	float3 highColour,
+	unsigned long long seed);
 
 } // namespace compute
 } // namespace rmcuda

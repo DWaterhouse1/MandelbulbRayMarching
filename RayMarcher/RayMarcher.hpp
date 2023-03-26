@@ -15,6 +15,7 @@
 // std
 #include <vector>
 #include <memory>
+#include <random>
 
 // boost
 #include <boost/optional.hpp>
@@ -66,6 +67,10 @@ private:
 	int m_resizeHeight;
 
 	int m_numSamples = 1;
+
+	// random state
+	std::mt19937 m_randomState;
+	std::uniform_int_distribution<unsigned long long> m_distribution;
 };
 
 } // namespace rmcuda
