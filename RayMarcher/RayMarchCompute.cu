@@ -84,7 +84,8 @@ __global__ void calculateMandelbulb(
 	Camera camera,
 	float exponent,
 	int numSamples,
-	Strategy shadingStrategy)
+	Strategy shadingStrategy,
+	unsigned long long seed)
 {
 	unsigned int x = blockIdx.x * blockDim.x + threadIdx.x;
 	unsigned int y = blockIdx.y * blockDim.y + threadIdx.y;
@@ -93,7 +94,7 @@ __global__ void calculateMandelbulb(
 
 	//TODO seed this with a random value
 	curandState state;
-	curand_init(1729, 0, 0, &state);
+	curand_init(seed + (x * y), 0, 0, &state);
 
 	float3 color = make_float3(0.0f);
 
@@ -134,7 +135,8 @@ void rayMarchDiffuseColour(
 	Camera camera,
 	float exponent,
 	int numSamples,
-	float3 colour)
+	float3 colour,
+	unsigned long long seed)
 {
 	DiffuseStrategy shadingStrategy{ colour };
 
@@ -146,7 +148,8 @@ void rayMarchDiffuseColour(
 		camera,
 		exponent,
 		numSamples,
-		shadingStrategy);
+		shadingStrategy,
+		seed);
 }
 
 void rayMarchNormalColour(
@@ -154,7 +157,8 @@ void rayMarchNormalColour(
 	dim3 texDim,
 	Camera camera,
 	float exponent,
-	int numSamples)
+	int numSamples,
+	unsigned long long seed)
 {
 	NormalStrategy shadingStrategy{};
 
@@ -166,7 +170,8 @@ void rayMarchNormalColour(
 		camera,
 		exponent,
 		numSamples,
-		shadingStrategy);
+		shadingStrategy,
+		seed);
 }
 
 void rayMarchStepwiseColour(
@@ -176,7 +181,8 @@ void rayMarchStepwiseColour(
 	float exponent,
 	int numSamples,
 	float3 lowColour,
-	float3 highColour)
+	float3 highColour,
+	unsigned long long seed)
 {
 	StepwiseStrategy shadingStrategy{ lowColour, highColour };
 
@@ -188,7 +194,8 @@ void rayMarchStepwiseColour(
 		camera,
 		exponent,
 		numSamples,
-		shadingStrategy);
+		shadingStrategy,
+		seed);
 }
 
 } // namespace rmcuda
