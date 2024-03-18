@@ -2,6 +2,8 @@
 
 A simple toy project to visualise the mandelbulb fractal with standard ray marching methods. Runs on CUDA with OpenGL for real time presentation.
 
+[Demo](https://youtu.be/4p7G6HWgidY)
+
 ### Dependencies
 
 - NVIDIA CUDA Toolkit
@@ -12,7 +14,7 @@ A simple toy project to visualise the mandelbulb fractal with standard ray march
 - ImGui
 - Boost: Optional and Numeric Conversions
 
-Built with CMake, but does not export a target. You may need to manually manage the dependencies if you would like to build locally.
+Built with CMake, but you may need to manually manage the dependencies if you would like to build locally.
 
 ### RayMarcher
 
